@@ -1,0 +1,490 @@
+import Entries.EntryType;
+import Misc.MultiException;
+
+import javax.swing.*;
+import java.awt.*;
+import java.awt.event.ActionEvent;
+import java.io.StringWriter;
+import java.nio.file.Paths;
+
+public class Main {
+    private static EntryManager entryManager;
+    private JPanel Main;
+    private JTextField txtNameAdd;
+    private JComboBox cboDay;
+    private JButton btnAdd;
+    private JTextField txtNameSearch;
+    private JButton btnFilter;
+    private JTextField txtRoomSize;
+    private JTextField txtLocation;
+    private JTextField txtStartDate;
+    private JTextField txtClassSize;
+    private JTextField txtEndDate;
+    private JTextField txtStaff;
+    private JTextField txtPattern;
+    private JTextField txtDepartment;
+    private JComboBox cboType;
+    private JTable table1;
+    private JButton btnSave;
+    private JButton btnLoad;
+
+    public static void main(String[] args) throws Exception {
+        JFrame frame = new JFrame("Timetable Manager");
+        Main main = new Main();
+        frame.setContentPane(main.Main);
+        frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        frame.pack();
+
+        main.init(args);
+        frame.setVisible(true);
+    }
+
+    private void showMessageBox(String message) {
+        // too long message causes stack overflow, also impossible to read anyway
+        if (message.length() > 2_000) {
+            message = message.substring(0, 2_000);
+            message += "...";
+        }
+        JOptionPane.showMessageDialog(null, message);
+    }
+
+    private void handleMultiException(MultiException e) {
+        StringWriter error = new StringWriter();
+        for (Exception ex : e.exceptionList) {
+            error.write(ex.getMessage() + "\n");
+        }
+        showMessageBox(error.toString());
+    }
+
+    private void handleException(Exception ex) {
+        showMessageBox(ex.getMessage());
+    }
+
+    private void init(String[] args) throws ClassNotFoundException, UnsupportedLookAndFeelException, InstantiationException, IllegalAccessException {
+        // native style
+        UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
+        entryManager = new EntryManager(table1);
+
+        if (args.length > 0) {
+            for (String arg : args) {
+                try {
+                    entryManager.read(arg);
+                } catch (MultiException e) {
+                    handleMultiException(e);
+                } catch (Exception e) {
+                    handleException(e);
+                }
+            }
+        }
+
+        setupHandlers();
+    }
+
+    private void setupHandlers() {
+        btnFilter.addActionListener(this::handleBtnFilter);
+        btnAdd.addActionListener(this::handleBtnAdd);
+        btnLoad.addActionListener(this::handleBtnLoad);
+        btnSave.addActionListener(this::handleBtnSave);
+    }
+
+    private void handleBtnFilter(ActionEvent e) {
+        try {
+            entryManager.filterTable(txtNameSearch.getText());
+        } catch (Exception e1) {
+            handleException(e1);
+        }
+    }
+
+    private void handleBtnAdd(ActionEvent e) {
+        try {
+            entryManager.add(EntryType.values()[cboType.getSelectedIndex()], new String[]{txtNameAdd.getText(),
+                cboDay.getSelectedItem().toString(), txtStartDate.getText(), txtEndDate.getText(), txtPattern.getText(),
+                txtLocation.getText(), txtRoomSize.getText(), txtClassSize.getText(), txtStaff.getText(), txtDepartment.getText()});
+        } catch (Exception e1) {
+            handleException(e1);
+        }
+    }
+
+    private void handleBtnSave(ActionEvent e) {
+        try {
+            FileDialog dialog = new FileDialog((Frame) null, "Save file");
+            dialog.setMode(FileDialog.SAVE);
+            dialog.setVisible(true);
+            if (dialog.getFile() == null) {
+                return;
+            }
+            String file = Paths.get(dialog.getDirectory(), dialog.getFile()).toString();
+            if (!file.endsWith(".html")) {
+                file += ".html";
+            }
+            entryManager.saveHtml(file);
+            showMessageBox("File saved!");
+        } catch (Exception e1) {
+            handleException(e1);
+        }
+    }
+
+    private void handleBtnLoad(ActionEvent e) {
+        try {
+            FileDialog dialog = new FileDialog((Frame) null, "Load file");
+            dialog.setMode(FileDialog.LOAD);
+            dialog.setVisible(true);
+            if (dialog.getFile() == null) {
+                return;
+            }
+            String file = Paths.get(dialog.getDirectory(), dialog.getFile()).toString();
+            entryManager.read(file);
+            showMessageBox("File loaded!");
+        } catch (MultiException ex) {
+            handleMultiException(ex);
+        } catch (Exception ex) {
+            handleException(ex);
+        }
+    }
+
+    {
+// GUI initializer generated by IntelliJ IDEA GUI Designer
+// >>> IMPORTANT!! <<<
+// DO NOT EDIT OR ADD ANY CODE HERE!
+        $$$setupUI$$$();
+    }
+
+    /**
+     * Method generated by IntelliJ IDEA GUI Designer
+     * >>> IMPORTANT!! <<<
+     * DO NOT edit this method OR call it in your code!
+     *
+     * @noinspection ALL
+     */
+    private void $$$setupUI$$$() {
+        Main = new JPanel();
+        Main.setLayout(new GridBagLayout());
+        Main.setMinimumSize(new Dimension(900, 400));
+        Main.setOpaque(true);
+        Main.setPreferredSize(new Dimension(900, 400));
+        final JPanel spacer1 = new JPanel();
+        GridBagConstraints gbc;
+        gbc = new GridBagConstraints();
+        gbc.gridx = 0;
+        gbc.gridy = 6;
+        gbc.fill = GridBagConstraints.HORIZONTAL;
+        Main.add(spacer1, gbc);
+        final JPanel spacer2 = new JPanel();
+        gbc = new GridBagConstraints();
+        gbc.gridx = 0;
+        gbc.gridy = 9;
+        gbc.gridwidth = 8;
+        gbc.fill = GridBagConstraints.VERTICAL;
+        Main.add(spacer2, gbc);
+        final JLabel label1 = new JLabel();
+        label1.setText("Name: ");
+        gbc = new GridBagConstraints();
+        gbc.gridx = 1;
+        gbc.gridy = 1;
+        gbc.anchor = GridBagConstraints.WEST;
+        Main.add(label1, gbc);
+        txtNameAdd = new JTextField();
+        gbc = new GridBagConstraints();
+        gbc.gridx = 2;
+        gbc.gridy = 1;
+        gbc.weightx = 1.0;
+        gbc.anchor = GridBagConstraints.WEST;
+        gbc.fill = GridBagConstraints.HORIZONTAL;
+        Main.add(txtNameAdd, gbc);
+        final JLabel label2 = new JLabel();
+        label2.setText("Day: ");
+        gbc = new GridBagConstraints();
+        gbc.gridx = 4;
+        gbc.gridy = 1;
+        gbc.anchor = GridBagConstraints.WEST;
+        Main.add(label2, gbc);
+        final JPanel spacer3 = new JPanel();
+        gbc = new GridBagConstraints();
+        gbc.gridx = 17;
+        gbc.gridy = 6;
+        gbc.fill = GridBagConstraints.HORIZONTAL;
+        Main.add(spacer3, gbc);
+        final JPanel spacer4 = new JPanel();
+        gbc = new GridBagConstraints();
+        gbc.gridx = 0;
+        gbc.gridy = 3;
+        gbc.gridwidth = 18;
+        gbc.fill = GridBagConstraints.VERTICAL;
+        Main.add(spacer4, gbc);
+        final JPanel spacer5 = new JPanel();
+        gbc = new GridBagConstraints();
+        gbc.gridx = 0;
+        gbc.gridy = 0;
+        gbc.gridwidth = 18;
+        gbc.fill = GridBagConstraints.VERTICAL;
+        Main.add(spacer5, gbc);
+        cboDay = new JComboBox();
+        cboDay.setMinimumSize(new Dimension(64, 24));
+        final DefaultComboBoxModel defaultComboBoxModel1 = new DefaultComboBoxModel();
+        defaultComboBoxModel1.addElement("Monday");
+        defaultComboBoxModel1.addElement("Tuesday");
+        defaultComboBoxModel1.addElement("Wednesday");
+        defaultComboBoxModel1.addElement("Thursday");
+        defaultComboBoxModel1.addElement("Friday");
+        defaultComboBoxModel1.addElement("Saturday");
+        defaultComboBoxModel1.addElement("Sunday");
+        cboDay.setModel(defaultComboBoxModel1);
+        cboDay.setPreferredSize(new Dimension(64, 24));
+        gbc = new GridBagConstraints();
+        gbc.gridx = 5;
+        gbc.gridy = 1;
+        gbc.weightx = 1.0;
+        gbc.fill = GridBagConstraints.HORIZONTAL;
+        Main.add(cboDay, gbc);
+        final JLabel label3 = new JLabel();
+        label3.setText("Start time: ");
+        gbc = new GridBagConstraints();
+        gbc.gridx = 7;
+        gbc.gridy = 1;
+        gbc.anchor = GridBagConstraints.WEST;
+        Main.add(label3, gbc);
+        txtStartDate = new JTextField();
+        gbc = new GridBagConstraints();
+        gbc.gridx = 8;
+        gbc.gridy = 1;
+        gbc.weightx = 1.0;
+        gbc.anchor = GridBagConstraints.WEST;
+        gbc.fill = GridBagConstraints.HORIZONTAL;
+        Main.add(txtStartDate, gbc);
+        final JLabel label4 = new JLabel();
+        label4.setText("End time: ");
+        gbc = new GridBagConstraints();
+        gbc.gridx = 10;
+        gbc.gridy = 1;
+        gbc.anchor = GridBagConstraints.WEST;
+        Main.add(label4, gbc);
+        txtEndDate = new JTextField();
+        gbc = new GridBagConstraints();
+        gbc.gridx = 11;
+        gbc.gridy = 1;
+        gbc.weightx = 1.0;
+        gbc.anchor = GridBagConstraints.WEST;
+        gbc.fill = GridBagConstraints.HORIZONTAL;
+        Main.add(txtEndDate, gbc);
+        final JLabel label5 = new JLabel();
+        label5.setText("Pattern: ");
+        gbc = new GridBagConstraints();
+        gbc.gridx = 13;
+        gbc.gridy = 1;
+        gbc.anchor = GridBagConstraints.WEST;
+        Main.add(label5, gbc);
+        txtPattern = new JTextField();
+        gbc = new GridBagConstraints();
+        gbc.gridx = 14;
+        gbc.gridy = 1;
+        gbc.gridwidth = 3;
+        gbc.weightx = 1.0;
+        gbc.anchor = GridBagConstraints.WEST;
+        gbc.fill = GridBagConstraints.HORIZONTAL;
+        Main.add(txtPattern, gbc);
+        final JLabel label6 = new JLabel();
+        label6.setText("Room size: ");
+        gbc = new GridBagConstraints();
+        gbc.gridx = 1;
+        gbc.gridy = 2;
+        gbc.anchor = GridBagConstraints.WEST;
+        Main.add(label6, gbc);
+        txtRoomSize = new JTextField();
+        gbc = new GridBagConstraints();
+        gbc.gridx = 2;
+        gbc.gridy = 2;
+        gbc.weightx = 1.0;
+        gbc.anchor = GridBagConstraints.WEST;
+        gbc.fill = GridBagConstraints.HORIZONTAL;
+        Main.add(txtRoomSize, gbc);
+        final JLabel label7 = new JLabel();
+        label7.setText("Location: ");
+        gbc = new GridBagConstraints();
+        gbc.gridx = 4;
+        gbc.gridy = 2;
+        gbc.anchor = GridBagConstraints.WEST;
+        Main.add(label7, gbc);
+        txtLocation = new JTextField();
+        gbc = new GridBagConstraints();
+        gbc.gridx = 5;
+        gbc.gridy = 2;
+        gbc.weightx = 1.0;
+        gbc.anchor = GridBagConstraints.WEST;
+        gbc.fill = GridBagConstraints.HORIZONTAL;
+        Main.add(txtLocation, gbc);
+        final JLabel label8 = new JLabel();
+        label8.setText("Class size: ");
+        gbc = new GridBagConstraints();
+        gbc.gridx = 7;
+        gbc.gridy = 2;
+        gbc.anchor = GridBagConstraints.WEST;
+        Main.add(label8, gbc);
+        txtClassSize = new JTextField();
+        gbc = new GridBagConstraints();
+        gbc.gridx = 8;
+        gbc.gridy = 2;
+        gbc.weightx = 1.0;
+        gbc.anchor = GridBagConstraints.WEST;
+        gbc.fill = GridBagConstraints.HORIZONTAL;
+        Main.add(txtClassSize, gbc);
+        final JLabel label9 = new JLabel();
+        label9.setText("Staff: ");
+        gbc = new GridBagConstraints();
+        gbc.gridx = 10;
+        gbc.gridy = 2;
+        gbc.anchor = GridBagConstraints.WEST;
+        Main.add(label9, gbc);
+        txtStaff = new JTextField();
+        gbc = new GridBagConstraints();
+        gbc.gridx = 11;
+        gbc.gridy = 2;
+        gbc.weightx = 1.0;
+        gbc.anchor = GridBagConstraints.WEST;
+        gbc.fill = GridBagConstraints.HORIZONTAL;
+        Main.add(txtStaff, gbc);
+        final JLabel label10 = new JLabel();
+        label10.setText("Department: ");
+        gbc = new GridBagConstraints();
+        gbc.gridx = 13;
+        gbc.gridy = 2;
+        gbc.anchor = GridBagConstraints.WEST;
+        Main.add(label10, gbc);
+        txtDepartment = new JTextField();
+        gbc = new GridBagConstraints();
+        gbc.gridx = 14;
+        gbc.gridy = 2;
+        gbc.gridwidth = 3;
+        gbc.weightx = 1.0;
+        gbc.anchor = GridBagConstraints.WEST;
+        gbc.fill = GridBagConstraints.HORIZONTAL;
+        Main.add(txtDepartment, gbc);
+        final JPanel spacer6 = new JPanel();
+        gbc = new GridBagConstraints();
+        gbc.gridx = 3;
+        gbc.gridy = 1;
+        gbc.fill = GridBagConstraints.HORIZONTAL;
+        Main.add(spacer6, gbc);
+        final JPanel spacer7 = new JPanel();
+        gbc = new GridBagConstraints();
+        gbc.gridx = 6;
+        gbc.gridy = 1;
+        gbc.fill = GridBagConstraints.HORIZONTAL;
+        Main.add(spacer7, gbc);
+        final JPanel spacer8 = new JPanel();
+        gbc = new GridBagConstraints();
+        gbc.gridx = 9;
+        gbc.gridy = 1;
+        gbc.fill = GridBagConstraints.HORIZONTAL;
+        Main.add(spacer8, gbc);
+        final JPanel spacer9 = new JPanel();
+        gbc = new GridBagConstraints();
+        gbc.gridx = 12;
+        gbc.gridy = 1;
+        gbc.fill = GridBagConstraints.HORIZONTAL;
+        Main.add(spacer9, gbc);
+        final JPanel spacer10 = new JPanel();
+        gbc = new GridBagConstraints();
+        gbc.gridx = 11;
+        gbc.gridy = 7;
+        gbc.fill = GridBagConstraints.VERTICAL;
+        Main.add(spacer10, gbc);
+        final JPanel spacer11 = new JPanel();
+        gbc = new GridBagConstraints();
+        gbc.gridx = 0;
+        gbc.gridy = 5;
+        gbc.gridwidth = 18;
+        gbc.fill = GridBagConstraints.VERTICAL;
+        Main.add(spacer11, gbc);
+        final JScrollPane scrollPane1 = new JScrollPane();
+        gbc = new GridBagConstraints();
+        gbc.gridx = 1;
+        gbc.gridy = 6;
+        gbc.gridwidth = 16;
+        gbc.weightx = 1.0;
+        gbc.weighty = 1.0;
+        gbc.fill = GridBagConstraints.BOTH;
+        Main.add(scrollPane1, gbc);
+        table1 = new JTable();
+        scrollPane1.setViewportView(table1);
+        btnFilter = new JButton();
+        btnFilter.setText("Filter");
+        gbc = new GridBagConstraints();
+        gbc.gridx = 16;
+        gbc.gridy = 8;
+        gbc.anchor = GridBagConstraints.EAST;
+        Main.add(btnFilter, gbc);
+        final JLabel label11 = new JLabel();
+        label11.setText("Name: ");
+        gbc = new GridBagConstraints();
+        gbc.gridx = 8;
+        gbc.gridy = 8;
+        gbc.anchor = GridBagConstraints.EAST;
+        Main.add(label11, gbc);
+        btnAdd = new JButton();
+        btnAdd.setText("Add");
+        gbc = new GridBagConstraints();
+        gbc.gridx = 16;
+        gbc.gridy = 4;
+        gbc.fill = GridBagConstraints.HORIZONTAL;
+        Main.add(btnAdd, gbc);
+        cboType = new JComboBox();
+        final DefaultComboBoxModel defaultComboBoxModel2 = new DefaultComboBoxModel();
+        defaultComboBoxModel2.addElement("Lecture");
+        defaultComboBoxModel2.addElement("Lab");
+        defaultComboBoxModel2.addElement("Practical");
+        defaultComboBoxModel2.addElement("Seminar");
+        cboType.setModel(defaultComboBoxModel2);
+        gbc = new GridBagConstraints();
+        gbc.gridx = 15;
+        gbc.gridy = 4;
+        gbc.fill = GridBagConstraints.HORIZONTAL;
+        Main.add(cboType, gbc);
+        final JPanel spacer12 = new JPanel();
+        gbc = new GridBagConstraints();
+        gbc.gridx = 0;
+        gbc.gridy = 4;
+        gbc.gridwidth = 14;
+        gbc.weightx = 1.0;
+        gbc.fill = GridBagConstraints.HORIZONTAL;
+        Main.add(spacer12, gbc);
+        txtNameSearch = new JTextField();
+        gbc = new GridBagConstraints();
+        gbc.gridx = 10;
+        gbc.gridy = 8;
+        gbc.gridwidth = 6;
+        gbc.weightx = 1.0;
+        gbc.anchor = GridBagConstraints.WEST;
+        gbc.fill = GridBagConstraints.HORIZONTAL;
+        Main.add(txtNameSearch, gbc);
+        final JPanel spacer13 = new JPanel();
+        gbc = new GridBagConstraints();
+        gbc.gridx = 14;
+        gbc.gridy = 4;
+        gbc.weightx = 1.0;
+        gbc.fill = GridBagConstraints.HORIZONTAL;
+        Main.add(spacer13, gbc);
+        btnLoad = new JButton();
+        btnLoad.setText("Load");
+        gbc = new GridBagConstraints();
+        gbc.gridx = 1;
+        gbc.gridy = 8;
+        gbc.anchor = GridBagConstraints.WEST;
+        Main.add(btnLoad, gbc);
+        btnSave = new JButton();
+        btnSave.setText("Save");
+        gbc = new GridBagConstraints();
+        gbc.gridx = 2;
+        gbc.gridy = 8;
+        gbc.gridwidth = 2;
+        gbc.anchor = GridBagConstraints.WEST;
+        Main.add(btnSave, gbc);
+    }
+
+    /**
+     * @noinspection ALL
+     */
+    public JComponent $$$getRootComponent$$$() {
+        return Main;
+    }
+
+}
